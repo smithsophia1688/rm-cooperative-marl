@@ -41,7 +41,7 @@ def rendezvous_config(num_times, num_agents):
     learning_params.enter_loop = 10
 
     tester = Tester(learning_params, testing_params)
-    tester.total_steps = 150 * step_unit
+    tester.total_steps = 5*step_unit #150 * step_unit
     tester.min_steps = 1
 
     tester.rm_test_file = joint_rm_file
@@ -52,11 +52,11 @@ def rendezvous_config(num_times, num_agents):
 
     # Set the environment settings for the experiment
     env_settings = dict()
-    env_settings['Nr'] = 10
-    env_settings['Nc'] = 10
-    env_settings['initial_states'] = [0, 3, 20, 8, 90, 40, 70, 49, 96, 69]
+    env_settings['Nr'] = 5
+    env_settings['Nc'] = 5
+    env_settings['initial_states'] = [0, 3, 0, 1]
     env_settings['rendezvous_loc'] = (3,4)
-    env_settings['goal_locations'] = [(9,7), (7,9), (2,9), (9,9), (0,9), (7,0), (4,0), (5,0), (6,9), (8,0)]
+    env_settings['goal_locations'] = [(0,0), (1,1)]
     env_settings['p'] = 0.98
 
     tester.env_settings = env_settings

@@ -472,6 +472,7 @@ class MultiAgentGridWorldEnv:
         s : int
             Index of the current state
         """
+
         display = np.zeros((self.Nr, self.Nc))
 
         # Display the location of key points in world
@@ -506,19 +507,19 @@ def play():
     str_to_action = {"w":Actions.up.value,"d":Actions.right.value,"s":Actions.down.value,"a":Actions.left.value,"x":Actions.none.value}
 
     s = game.get_initial_team_state()
-    print(s)
 
+    l_list = []
     while True:
         # Showing game
         game.show(s)
 
         # Getting action
         a = np.full(n, -1, dtype=int)
-        
         for i in range(n):
             print('\nAction{}?'.format(i+1), end='')
             usr_inp = input()
             print()
+            print("ACTION OPTIONS:", str_to_action)
 
             if not(usr_inp in str_to_action):
                 print('forbidden action')
@@ -528,7 +529,8 @@ def play():
                 a[i] = str_to_action[usr_inp]
 
         r, l, s = game.environment_step(s, a)
-        
+        print("Event was:", l)
+        l_list.append(l)
         print("---------------------")
         print("Next States: ", s)
         print("Label: ", l)
@@ -539,6 +541,7 @@ def play():
 
         if game.reward_machine.is_terminal_state(game.u): # Game Over
                 break 
+    print("Full event history:", l_list)
     game.show(s)
     
 # This code allow to play a game (for debugging purposes)

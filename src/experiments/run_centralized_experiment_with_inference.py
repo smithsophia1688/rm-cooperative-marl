@@ -129,17 +129,13 @@ def run_qlearning_task(epsilon,
         if tester.stop_learning():
             break
 
-    print("     reward for q learning task: ", reward)
-    #print("   ")
+    #print("REWARD WAS: ", reward)
     #print("All events length ", len(event_list))
     #print("All events ", event_list[:2], " ... ", event_list[-2:])
-    print("ALL EVENT LIST:")
-    print(event_list)
-    print(" ")
     #print(tester.results.keys())
     #for i in tester.results.keys():
     #print("     ", i, ":", tester.results[i].keys())
-
+    return tester, centralized_agent, reward, event_list
 
 
 def run_centralized_qlearning_test(centralized_agent,
@@ -202,6 +198,7 @@ def run_centralized_qlearning_test(centralized_agent,
 def run_centralized_experiment(tester,
                             num_agents,
                             num_times,
+                            true_rm,
                             show_print=False):
     """
     Run the entire q-learning with reward machines experiment a number of times specified by num_times.
@@ -222,9 +219,9 @@ def run_centralized_experiment(tester,
     learning_params = tester.learning_params
     #new_traces = Traces(set(), set())
     
-
+    #event_records = []
+    #reward_records = []
     for t in range(num_times):
-        print("t is", t, "out of ", num_times)
         # Reseting default step values
         tester.restart()
 
@@ -241,41 +238,51 @@ def run_centralized_experiment(tester,
 
         # Task loop
         epsilon = learning_params.initial_epsilon
-
+        
+        
         while not tester.stop_learning():
-            print("     tester stop learning: ", tester.stop_learning())
             num_episodes += 1
 
-            run_qlearning_task(epsilon,
+            tester, centralized_agent, reward, event_list = run_qlearning_task(epsilon,
                                 tester,
                                 centralized_agent,
                                 show_print=show_print)
 
-            #event_number_dict = {'l1':0, 'l2': 1, 'r1': 2, 'r2': 3, 'r':4, 'g1': 5, 'g2': 6}
-            
-            #my_trace = Traces(event_number_dict = event_number_dict) #make Trace
-            #trace_history = my_trace.get_multi_agent_trace(event_list) # convert events to numbers
-            #my_trace.add_trace(trace_history, reward) #add the trace
-            
-            #traces_file = './src/automata_learning_utils/data/data2.txt'
-
-            #my_trace.export_traces(traces_file)
-
-            ### CHECK WHAT YOU DID WHEN  YOU GOT JR CODE TO WORK ###
-            ''' 
-            automaton_visualization_filename = al_utils.learn_automaton(traces_file, show_plots,
-                    automaton_learning_algorithm=al_alg_name,
-                    pysat_algorithm=sat_alg_name,
-                    sup_hint_dfas=hint_dfas,
-                    output_reward_machine_filename=hm_file_update,
-                )
-            '''
-        print("I LEFT THE WHILE LOOP ")
-        # Backing up the results
+        #event_records.append(event_list)
+        #reward_records.append(reward) 
+        print("event_list length", len(event_list))
+        print(event_list)
+        #Only grabs the last trace once it is learned. Not sure if this is right. 
+        my_trace = Traces(event_number_dict = tester.event_number_dict) #make Trace
+        trace_history = my_trace.get_multi_agent_trace(event_list) # convert events to numbers
+        event_history = my_trace.get_multi_agent_event_history(event_list)
+        true_reward =  true_rm.calculate_reward(event_history) #get true reward from trajectories
+        my_trace.add_trace(trace_history, true_reward) #add the trace
+           
+        traces_file = './src/automata_learning_utils/data/traces_{}.txt'.format(t)
+        print("traces file", traces_file)
+        my_trace.export_traces(traces_file)
         
 
-        print('Finished iteration ',t)
+        ### CHECK WHAT YOU DID WHEN  YOU GOT JR CODE TO WORK ###
+        show_plots=False
+        is_SAT= None
+        pysat_algorithm = "rc2"
+        output_reward_machine_filename = "./automata_learning_utils/data/rm_inference_{}.txt".format(t)
+        
+        automaton_visualization_filename = al_utils.learn_automaton(traces_file, 
+                                                                    show_plots, 
+                                                                    is_SAT,  
+                                                                    automaton_learning_algorithm = "pysat",
+                                                                    pysat_algorithm = pysat_algorithm, 
+                                                                    automaton_learning_program = None, 
+                                                                    sup_hint_dfas = None, 
+                                                                    output_reward_machine_filename =output_reward_machine_filename) 
 
+        centralized_agent.rm_file = output_reward_machine_filename
+
+        # Backing up the results
+        print('Finished iteration ', t)
 
     plot_multi_agent_results(tester, num_agents)
 
